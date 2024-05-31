@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zig + JavaScript</title>
+
+    <script type="module">
+        import { Zig } from "./zig_wasm_exec.js";
+        /** @type {HTMLButtonElement} */
+        const runButton = document.querySelector("#run");
+        const zig = new Zig();
+        let { module, instance } = await WebAssembly.instantiateStreaming(
+            fetch(import.meta.resolve("./zig_test.wasm")),
+            zig.importObject,
+        );
+        runButton.addEventListener("click", async () => {
+            runButton.disabled = true;
+            try {
+                await zig.run(instance);
+                instance = await WebAssembly.instantiate(module, zig.importObject);
+            } finally {
+                runButton.disabled = false;
+            }
+        });
+        runButton.disabled = false;
+    </script>
+</head>
+<body>
+    <p>Open DevTools to see the console. <kbd>F12</kbd> or <kbd><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd></kbd></p>
+    <button id="run" disabled>Run</button>
+</body>
+</html>
